@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Events Nantes</title>
+    <link rel="stylesheet" href="https://cdn.metroui.org.ua/v4/css/metro-all.min.css">
+    <style>
+        .event {
+            min-width: 10em;
+            max-width: 15em;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" class="container">
+        <div class="d-flex flex-row flex-wrap align-content">
+            <div v-for="event in events" class="p-4">
+                <div class="card image-header event">
+                    <div class="card-header fg-white" :style="'background-image: url(' + event.fields.media_1 + ')'">
+                        {{event.fields.nom}}
+                    </div>
+                    <div class="card-content p-2">
+                        <p class="fg-gray">Le {{event.fields.date}} à <span class="mif-alarm"></span>{{event.fields.heure_debut}}</p>
+                        {{event.fields.description}}
+                    </div>
+                    <div class="card-footer">
+                        {{event.fields.adresse}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        const urlAPI = "https://data.nantesmetropole.fr/api/records/1.0/search/?dataset=244400404_agenda-evenements-nantes-nantes-metropole&facet=emetteur&facet=rubrique&facet=lieu&facet=ville";
+
+        Vue.filter('Test', function (value) {
+            if(value == "oui"){
+                return true;
+            }
+            else{
+                return false;
+            }
+        });
+        
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                events: null,
+            },
+            created: function () {
+                this.getData()
+            },
+            methods: {
+                getData: function () {
+                    axios
+                        .get(urlAPI)
+                        .then(response => {
+                            console.log(response);
+                            this.events = response.data.records;
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                }
+            }
+        });
+    </script>
+    <script src="https://cdn.metroui.org.ua/v4/js/metro.min.js"></script>
+</body>
+
+</html>

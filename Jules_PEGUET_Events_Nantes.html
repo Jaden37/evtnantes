@@ -5,54 +5,77 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Events Nantes</title>
-    <link rel="stylesheet" href="https://cdn.metroui.org.ua/v4/css/metro-all.min.css">
-    <style>
-        .event {
-            min-width: 10em;
-            max-width: 15em;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="style_card.css" rel="stylesheet">
+    <link href="bar.css" rel="stylesheet">
 </head>
 
 <body>
     <div id="app" class="container">
-        <div class="d-flex flex-row flex-wrap align-content">
-            <div v-for="event in events" class="p-4">
-                <div class="card image-header event">
-                    <div class="card-header fg-white" :style="'background-image: url(' + event.fields.media_1 + ')'">
-                        {{event.fields.nom}}
+        <div class="row">
+            <div class="input-field col s6">
+                <i class="material-icons prefix">search</i>
+                <input id="icon_prefix" type="text" v-model="search" class="validate">
+                <label for="icon_prefix">Search</label>
+            </div>
+            <div class="col s6 bar">
+                <a class="btn-large waves-effect waves-light grid-icon" v-bind:class="{ 'active': layout == 'grid'}"
+                    v-on:click="layout = 'grid'"><i class="material-icons">view_module</i></a>
+                <a class="btn-large waves-effect waves-light list-icon" v-bind:class="{ 'active': layout == 'list'}"
+                    v-on:click="layout = 'list'"><i class="material-icons">format_list_bulleted</i></a>
+            </div>
+        </div>
+        <div v-if="layout == 'grid'" class="row">
+            <div v-for="event in searchEvents" class="event col l3 m6 s12">
+                <div class="card">
+                    <div class="card-image">
+                        <img :src="event.fields.media_1" alt="" />
                     </div>
-                    <div class="card-content p-2">
-                        <p class="fg-gray">Le {{event.fields.date}} à <span class="mif-alarm"></span>{{event.fields.heure_debut}}</p>
-                        {{event.fields.description}}
-                    </div>
-                    <div class="card-footer">
-                        {{event.fields.adresse}}
+                    <div class="card-content">
+                        <p>{{ event.fields.lieu }}</p>
+                        <p>Le {{event.fields.date | formatDate}} à <span
+                                class="mif-alarm"></span>{{event.fields.heure_debut}}</p>
+                        <p>{{event.fields.adresse}}</p>
+                        <p class="card-title blue-text text-darken-2">
+                            {{ event.fields.nom }}
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
+        <ul v-if="layout == 'list'" class="collection list">
+            <li class="collection-item avatar" v-for="event in searchEvents">
+                <img :src="event.fields.media_1" class="circle" />
+                <span class="title blue-text text-darken-3">{{ event.fields.nom }}</span>
+                <p>Le {{event.fields.date | formatDate}} à <span class="mif-alarm"></span>{{event.fields.heure_debut}}
+                </p>
+                <p>{{event.fields.adresse}}</p>
+                <p>{{ event.fields.lieu }}</p>
+            </li>
+        </ul>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
     <script>
         const urlAPI = "https://data.nantesmetropole.fr/api/records/1.0/search/?dataset=244400404_agenda-evenements-nantes-nantes-metropole&facet=emetteur&facet=rubrique&facet=lieu&facet=ville";
 
-        Vue.filter('Test', function (value) {
-            if(value == "oui"){
-                return true;
-            }
-            else{
-                return false;
+        Vue.filter('formatDate', function (value) {
+            if (value) {
+                return moment(String(value)).format('DD/MM/YYYY');
             }
         });
-        
 
         var app = new Vue({
             el: '#app',
             data: {
                 events: null,
+                search: "",
+                layout: 'grid',
             },
             created: function () {
                 this.getData()
@@ -69,10 +92,30 @@
                             console.log(error);
                         });
                 }
+            },
+            computed: {
+                searchEvents: function () {
+                    var eventsArray = this.events;
+                    var searchString = this.search;
+
+                    if (!searchString) {
+                        return eventsArray;
+                    }
+                    searchString = searchString.trim().toLowerCase();
+
+                    eventsArray = eventsArray.filter(function (item) {
+                        if (item.fields.nom.toLowerCase().indexOf(searchString) !== -1) {
+                            return item;
+                        }
+                    })
+
+                    // Return an array with the filtered data.
+                    return eventsArray;
+                }
             }
         });
     </script>
-    <script src="https://cdn.metroui.org.ua/v4/js/metro.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 </body>
 
 </html>
